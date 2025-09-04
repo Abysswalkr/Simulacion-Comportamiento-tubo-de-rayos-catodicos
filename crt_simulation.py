@@ -173,8 +173,8 @@ class CRTSimulation:
             intensity = max(0, 1.0 - age / self.persistence_frames)
             
             # Convertir a coordenadas de pantalla
-            screen_y = int(VIEWPORT_WIDTH // 2 + y * FRONT_SCALE)
-            screen_z = int(VIEWPORT_HEIGHT // 2 - z * FRONT_SCALE)
+            screen_y = int(MAIN_SCREEN_WIDTH // 2 + y * FRONT_SCALE)
+            screen_z = int(MAIN_SCREEN_HEIGHT // 2 - z * FRONT_SCALE)
             
             points.append((screen_y, screen_z, intensity))
         
@@ -206,6 +206,13 @@ class CRTSimulation:
                            (x_offset + screen_x, y_offset + 20),
                            (x_offset + screen_x, y_offset + VIEWPORT_HEIGHT - 20), 3)
             
+            # Cañón de electrones
+            gun_width = 15
+            gun_height = 8
+            pygame.draw.rect(screen, WHITE,
+                           (x_offset + 5, y_offset + VIEWPORT_HEIGHT//2 - gun_height//2,
+                            gun_width, gun_height))
+            
         elif view_type == "top":
             # Dibujar placas horizontales
             plate_x = int(GUN_TO_PLATE_DISTANCE * TOP_SCALE)
@@ -226,7 +233,49 @@ class CRTSimulation:
             pygame.draw.line(screen, GREEN,
                            (x_offset + screen_x, y_offset + 20),
                            (x_offset + screen_x, y_offset + VIEWPORT_HEIGHT - 20), 3)
+            
+            # Cañón de electrones
+            gun_width = 15
+            gun_height = 8
+            pygame.draw.rect(screen, WHITE,
+                           (x_offset + 5, y_offset + VIEWPORT_HEIGHT//2 - gun_height//2,
+                            gun_width, gun_height))
         
         elif view_type == "front":
             # Dibujar borde de pantalla
-            pygame.draw.rect(screen, GREEN, viewport_rect, 3)
+            pygame.draw.rect(screen, GREEN, viewport_rect, 4)
+            
+            # Dibujar líneas de cuadrícula
+            grid_spacing = 50
+            grid_color = (0, 50, 0) 
+            
+            # Líneas verticales
+            for x in range(grid_spacing, MAIN_SCREEN_WIDTH, grid_spacing):
+                pygame.draw.line(screen, grid_color,
+                               (viewport_rect.x + x, viewport_rect.y),
+                               (viewport_rect.x + x, viewport_rect.y + MAIN_SCREEN_HEIGHT))
+            
+            # Líneas horizontales
+            for y in range(grid_spacing, MAIN_SCREEN_HEIGHT, grid_spacing):
+                pygame.draw.line(screen, grid_color,
+                               (viewport_rect.x, viewport_rect.y + y),
+                               (viewport_rect.x + MAIN_SCREEN_WIDTH, viewport_rect.y + y))
+            
+            # Punto central
+            center_x = viewport_rect.x + MAIN_SCREEN_WIDTH // 2
+            center_y = viewport_rect.y + MAIN_SCREEN_HEIGHT // 2
+            pygame.draw.circle(screen, (0, 100, 0), (center_x, center_y), 3)
+            
+            # Marcas de escala
+            scale_color = (0, 150, 0)
+            # Marcas horizontales
+            for i in range(-4, 5):
+                x = center_x + i * (MAIN_SCREEN_WIDTH // 10)
+                pygame.draw.line(screen, scale_color,
+                               (x, center_y - 5), (x, center_y + 5), 2)
+            
+            # Marcas verticales
+            for i in range(-4, 5):
+                y = center_y + i * (MAIN_SCREEN_HEIGHT // 10)
+                pygame.draw.line(screen, scale_color,
+                               (center_x - 5, y), (center_x + 5, y), 2)

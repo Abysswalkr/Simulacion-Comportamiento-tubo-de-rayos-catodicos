@@ -29,7 +29,7 @@ class CRTApp:
         self.top_viewport = pygame.Rect(TOP_VIEW_POS[0], TOP_VIEW_POS[1], 
                                       VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
         self.front_viewport = pygame.Rect(FRONT_VIEW_POS[0], FRONT_VIEW_POS[1], 
-                                        VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
+                                        MAIN_SCREEN_WIDTH, MAIN_SCREEN_HEIGHT)
     
     def create_controls(self):
         """Crea todos los controles de la interfaz"""
@@ -177,24 +177,24 @@ class CRTApp:
         screen_points = self.simulation.get_screen_points()
         
         for x, y, intensity in screen_points:
-            if (0 <= x < VIEWPORT_WIDTH and 0 <= y < VIEWPORT_HEIGHT):
+            if (0 <= x < MAIN_SCREEN_WIDTH and 0 <= y < MAIN_SCREEN_HEIGHT):
                 # Calcular color basado en intensidad
                 green_value = int(255 * intensity)
                 color = (0, green_value, 0)
                 
                 # Dibujar punto con tamaño basado en intensidad
-                radius = max(1, int(3 * intensity))
+                radius = max(1, int(4 * intensity)) 
                 pygame.draw.circle(self.screen, color,
                                  (self.front_viewport.x + x, self.front_viewport.y + y), 
                                  radius)
     
     def draw_info_panel(self):
         """Dibuja panel con información física"""
-        info_x = 300
-        info_y = 20
+        info_x = 20
+        info_y = 540
         
         # Fondo del panel
-        info_rect = pygame.Rect(info_x, info_y, 280, 200)
+        info_rect = pygame.Rect(info_x, info_y, 320, 240)
         pygame.draw.rect(self.screen, (20, 20, 20), info_rect)
         pygame.draw.rect(self.screen, WHITE, info_rect, 1)
         
@@ -208,21 +208,29 @@ class CRTApp:
             f"Separación placas: {PLATE_SEPARATION*100:.0f} cm", 
             f"Longitud placas: {PLATE_LENGTH*100:.0f} cm",
             f"Distancia placas-pantalla: {PLATE_TO_SCREEN_DISTANCE*100:.0f} cm",
-            f"Distancia cañón-placas: {GUN_TO_PLATE_DISTANCE*100:.0f} cm"
+            f"Distancia cañón-placas: {GUN_TO_PLATE_DISTANCE*100:.0f} cm",
+            "",
+            "Voltajes actuales:",
+            f"• Aceleración: {self.simulation.V_acceleration:.0f} V",
+            f"• Vertical: {self.simulation.V_vertical:.1f} V",
+            f"• Horizontal: {self.simulation.V_horizontal:.1f} V"
         ]
         
         y_offset = info_y + 40
         for line in info_lines:
+            if line == "":
+                y_offset += 10
+                continue
             text_surface = self.small_font.render(line, True, WHITE)
             self.screen.blit(text_surface, (info_x + 10, y_offset))
-            y_offset += 20
+            y_offset += 18
         
         # Información dinámica
         if self.simulation.V_acceleration > 0:
             v_initial = (2 * ELECTRON_CHARGE * self.simulation.V_acceleration / ELECTRON_MASS)**0.5
             velocity_text = f"Velocidad inicial: {v_initial/1e6:.2f} × 10⁶ m/s"
             text_surface = self.small_font.render(velocity_text, True, GREEN)
-            self.screen.blit(text_surface, (info_x + 10, y_offset + 20))
+            self.screen.blit(text_surface, (info_x + 10, y_offset + 10))
     
     def draw_controls_panel(self):
         """Dibuja el panel de controles"""
@@ -247,57 +255,80 @@ class CRTApp:
     
     def run(self):
         """Loop principal de la aplicación"""
-        while self.running:
-            # Manejar eventos
-            self.handle_events()
-            
-            # Actualizar simulación
-            self.simulation.update()
-            
-            # Limpiar pantalla
-            self.screen.fill(BLACK)
-            
-            # Dibujar viewports
-            self.draw_viewport(self.lateral_viewport, "Vista Lateral (X-Y)", WHITE)
-            self.draw_viewport(self.top_viewport, "Vista Superior (X-Z)", WHITE)  
-            self.draw_viewport(self.front_viewport, "Pantalla Frontal (Y-Z)", GREEN)
-            
-            # Dibujar estructura del CRT en cada vista
-            self.simulation.draw_crt_structure(self.screen, "lateral", self.lateral_viewport)
-            self.simulation.draw_crt_structure(self.screen, "top", self.top_viewport)
-            self.simulation.draw_crt_structure(self.screen, "front", self.front_viewport)
-            
-            # Dibujar trayectorias
-            lateral_points = self.simulation.get_lateral_view_points()
-            top_points = self.simulation.get_top_view_points()
-            
-            self.draw_trajectory(lateral_points, self.lateral_viewport, YELLOW)
-            self.draw_trajectory(top_points, self.top_viewport, ORANGE)
-            
-            # Dibujar rastro en pantalla frontal
-            self.draw_screen_trace()
-            
-            # Dibujar paneles de información
-            self.draw_info_panel()
-            self.draw_controls_panel()
-            
-            # Dibujar instrucciones
-            instructions = [
-                "Ajusta los voltajes para ver la deflexión del haz",
-                "Activa el modo sinusoidal para generar figuras de Lissajous",
-                "La persistencia controla cuánto tiempo permanece visible el rastro"
-            ]
-            
-            y_pos = WINDOW_HEIGHT - 80
-            for instruction in instructions:
-                text_surface = self.small_font.render(instruction, True, WHITE)
-                self.screen.blit(text_surface, (20, y_pos))
-                y_pos += 20
-            
-            # Actualizar pantalla
-            pygame.display.flip()
-            self.clock.tick(FPS)
+        print("Iniciando simulación CRT...")
         
+        while self.running:
+            try:
+                # Manejar eventos
+                self.handle_events()
+                
+                # Si el programa debe cerrarse, salir del loop
+                if not self.running:
+                    break
+                
+                # Actualizar simulación
+                self.simulation.update()
+                
+                # Limpiar pantalla
+                self.screen.fill(BLACK)
+                
+                # Dibujar viewports
+                self.draw_viewport(self.lateral_viewport, "Vista Lateral (X-Y)", WHITE)
+                self.draw_viewport(self.top_viewport, "Vista Superior (X-Z)", WHITE)  
+                self.draw_viewport(self.front_viewport, "Pantalla Principal (Y-Z)", GREEN)
+                
+                # Dibujar estructura del CRT en cada vista
+                self.simulation.draw_crt_structure(self.screen, "lateral", self.lateral_viewport)
+                self.simulation.draw_crt_structure(self.screen, "top", self.top_viewport)
+                self.simulation.draw_crt_structure(self.screen, "front", self.front_viewport)
+                
+                # Dibujar trayectorias
+                lateral_points = self.simulation.get_lateral_view_points()
+                top_points = self.simulation.get_top_view_points()
+                
+                self.draw_trajectory(lateral_points, self.lateral_viewport, YELLOW)
+                self.draw_trajectory(top_points, self.top_viewport, ORANGE)
+                
+                # Dibujar rastro en pantalla frontal
+                self.draw_screen_trace()
+                
+                # Dibujar paneles de información
+                self.draw_info_panel()
+                self.draw_controls_panel()
+                
+                # Mostrar el estado actual del modo
+                mode_text = "MODO: " + ("SINUSOIDAL" if self.simulation.sinusoidal_mode else "MANUAL")
+                mode_color = GREEN if self.simulation.sinusoidal_mode else WHITE
+                mode_surface = self.font.render(mode_text, True, mode_color)
+                self.screen.blit(mode_surface, (350, 15))
+                
+                #instrucciones
+                instructions = [
+                    "• Ajusta los voltajes para ver la deflexión del haz de electrones",
+                    "• Activa el modo sinusoidal para generar figuras de Lissajous",
+                    "• La persistencia controla cuánto tiempo permanece visible el rastro"
+                ]
+                
+                # Título de instrucciones
+                instr_title = self.font.render("Instrucciones:", True, WHITE)
+                self.screen.blit(instr_title, (350, 480))
+                
+                y_pos = 505
+                for instruction in instructions:
+                    text_surface = self.small_font.render(instruction, True, WHITE)
+                    self.screen.blit(text_surface, (350, y_pos))
+                    y_pos += 18
+                
+                # Actualizar pantalla
+                pygame.display.flip()
+                self.clock.tick(FPS)
+                
+            except Exception as e:
+                print(f"Error en el loop principal: {e}")
+                # Continuar ejecutándose a pesar del error
+                continue
+        
+        print("Cerrando simulación CRT...")
         pygame.quit()
         sys.exit()
 

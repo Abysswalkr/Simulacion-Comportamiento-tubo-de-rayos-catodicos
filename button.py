@@ -16,12 +16,12 @@ class Button:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and self.hover:
                 self.clicked = True
-                return True
+                return False  
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 if self.clicked and self.hover:
                     self.clicked = False
-                    return True
+                    return True  # Activar al soltar
                 self.clicked = False
         
         return False
@@ -53,16 +53,38 @@ class ToggleButton(Button):
         self.text_off = text_off
         self.text_on = text_on
         self.state = initial_state
+        self.last_click_time = 0  
         self.update_text()
     
     def update_text(self):
         self.text = self.text_on if self.state else self.text_off
     
     def handle_event(self, event):
-        if super().handle_event(event):
-            self.state = not self.state
-            self.update_text()
-            return True
+        import time
+        current_time = time.time()
+        
+        mouse_pos = pygame.mouse.get_pos()
+        self.hover = self.rect.collidepoint(mouse_pos)
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1 and self.hover:
+                self.clicked = True
+                return False
+                
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1 and self.clicked and self.hover:
+                # Evitar clics múltiples muy rápidos
+                if current_time - self.last_click_time > 0.1:  # 100ms de cooldown
+                    self.clicked = False
+                    self.state = not self.state
+                    self.update_text()
+                    self.last_click_time = current_time
+                    return True
+                else:
+                    self.clicked = False
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                self.clicked = False
+        
         return False
     
     def draw(self, screen):
@@ -73,7 +95,7 @@ class ToggleButton(Button):
         if self.state:
             # Estado activado
             if self.clicked:
-                color = GREEN
+                color = (0, 120, 0)
             elif self.hover:
                 color = (0, 200, 0)
             else:
@@ -85,9 +107,12 @@ class ToggleButton(Button):
                 color = DARK_GRAY
             elif self.hover:
                 color = LIGHT_GRAY
+                text_color = BLACK
             else:
                 color = GRAY
-            text_color = WHITE
+                text_color = WHITE
+            if not self.hover:
+                text_color = WHITE
         
         # Dibujar botón
         pygame.draw.rect(screen, color, self.rect)
