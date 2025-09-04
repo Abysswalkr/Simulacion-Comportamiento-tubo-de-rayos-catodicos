@@ -12,7 +12,7 @@ PLATE_TO_SCREEN_DISTANCE = 0.30  # 30 cm
 GUN_TO_PLATE_DISTANCE = 0.10  # 10 cm
 
 # Configuración de pantalla
-WINDOW_WIDTH = 1200
+WINDOW_WIDTH = 1400
 WINDOW_HEIGHT = 800
 FPS = 60
 
@@ -29,9 +29,11 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 165, 0)
 
 # Dimensiones de viewports
-VIEWPORT_WIDTH = 250
-VIEWPORT_HEIGHT = 200
-PANEL_WIDTH = 300
+VIEWPORT_WIDTH = 280
+VIEWPORT_HEIGHT = 220
+MAIN_SCREEN_WIDTH = 400
+MAIN_SCREEN_HEIGHT = 400
+PANEL_WIDTH = 320
 
 # Rangos de controles
 ACCELERATION_VOLTAGE_RANGE = (100, 2000)  # V
@@ -41,12 +43,12 @@ FREQUENCY_RANGE = (0.1, 10.0)  # Hz
 PHASE_RANGE = (0, 360)  # degrees
 
 # Posiciones de viewports
-LATERAL_VIEW_POS = (20, 20)
-TOP_VIEW_POS = (20, 250)
-FRONT_VIEW_POS = (20, 480)
+LATERAL_VIEW_POS = (20, 20)  # Vista lateral arriba izquierda
+TOP_VIEW_POS = (20, 280)  # Vista superior abajo izquierda
+FRONT_VIEW_POS = (350, 50)  # Pantalla a la derecha
 CONTROL_PANEL_POS = (WINDOW_WIDTH - PANEL_WIDTH - 20, 20)
 
 # Escalas para conversión pixel/metro
-LATERAL_SCALE = 400  # pixels por metro
-TOP_SCALE = 400
-FRONT_SCALE = 500
+LATERAL_SCALE = 500  # pixels por metro
+TOP_SCALE = 500
+FRONT_SCALE = 800
